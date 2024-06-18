@@ -51,16 +51,7 @@ function drawMenu()
                 local isActive = ActiveBoons[godName][info.Key]
                 if not isActive then rom.ImGui.PushStyleColor(rom.ImGuiCol.Text, 0.75, 0, 0, 1) end
                 local value, checked = rom.ImGui.Checkbox(info.Name, isActive)
-                if info.Duo ~= nil then
-                    rom.ImGui.SameLine()
-                    rom.ImGui.TextColored(0.82, 1, 0.38, 1, '(D)')
-                elseif info.Legendary ~= nil then
-                    rom.ImGui.SameLine()
-                    rom.ImGui.TextColored(1, 0.56, 0, 1, '(L)')
-                elseif info.Elemental ~= nil then
-                    rom.ImGui.SameLine()
-                    rom.ImGui.TextColored(1, 0.29, 1, 1, '(I)')
-                end
+                writeBoonRarity(info)
                 if not isActive then rom.ImGui.PopStyleColor() end
                 if checked then
                     if value == true then
@@ -88,24 +79,24 @@ function drawMenu()
     end
 
     rom.ImGui.Spacing()
-    rom.ImGui.Separator()
-    rom.ImGui.Text("Profiles")
 
-    local saveName, saveDesc = "", ""
-    text, selected = rom.ImGui.InputText("Name##saveName", SaveName, 15)
-    if selected then SaveName = text end
-    text, selected = rom.ImGui.InputTextMultiline("Description##saveDesc", SaveDesc, 255, 0, 75)
-    if selected then SaveDesc = text end
+    if rom.ImGui.CollapsingHeader("Create or Update Profiles") then
+        rom.ImGui.TextWrapped("Create a new profile, or load an existing profile to update it here.")
+        text, selected = rom.ImGui.InputText("Name##saveName", SaveName, 50)
+        if selected then SaveName = text end
+        text, selected = rom.ImGui.InputTextMultiline("Description##saveDesc", SaveDesc, 500, 0, 75)
+        if selected then SaveDesc = text end
 
-    local saveButtonText = "Save New"
-    if Save[SaveName] ~= nil then saveButtonText = "Update" end
-    saveButtonText = saveButtonText .. " Profile: " .. SaveName .. "##save"
-    local save = rom.ImGui.Button(saveButtonText)
+        local saveButtonText = "Create"
+        if Save[SaveName] ~= nil then saveButtonText = "Update" end
+        saveButtonText = saveButtonText .. " Profile: " .. SaveName .. "##save"
+        local save = rom.ImGui.Button(saveButtonText)
 
 
-    if save then
-        -- until inputs work, hard-code the save name
-        saveLoadout(SaveName, SaveDesc)
+        if save then
+            -- until inputs work, hard-code the save name
+            saveLoadout(SaveName, SaveDesc)
+        end
     end
 
     if Save ~= nil then
@@ -117,41 +108,59 @@ function drawMenu()
         end
         table.sort(saveKeys)
 
-        rom.ImGui.Separator()
-
         rom.ImGui.Text("Saved Profiles")
         local saveCount = 0
         for _, name in pairs(saveKeys) do
+            local boonList = Save[name].ActiveBoons
             saveCount = saveCount + 1
+            local indent = 35
             if rom.ImGui.CollapsingHeader(tostring(name)) then
-                rom.ImGui.Indent(20)
                 rom.ImGui.TextWrapped(Save[name].Description)
-                local boonList = Save[name].ActiveBoons
-                local count = 0
-                for _, godName in pairs(godNames) do
-                    for boon, active in pairs(boonList[godName]) do
-                        if active == false then count = count + 1 end
-                    end
-                end
-                rom.ImGui.PushStyleColor(rom.ImGuiCol.Header, 0, 0.09, 0.09, 1)
-                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderHovered, 0, 0.18, 0.18, 1)
-                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderActive, 0, 0.33, 0.33, 1)
-                if rom.ImGui.CollapsingHeader(count .. " ban(s)###ban" .. tostring(name)) then
+                rom.ImGui.Indent(indent)
+                local banCount, allowCount = getBanCounts(tostring(name), godNames)
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.Header, 0.09, 0, 0, 1)
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderHovered, 0.18, 0, 0, 1)
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderActive, 0.33, 0, 0, 1)
+                if rom.ImGui.CollapsingHeader(banCount .. " banned###ban" .. tostring(name)) then
+                    rom.ImGui.Indent(indent)
                     for _, godName in pairs(godNames) do
-                        local data = boonList[godName]
-                        for boon, active in pairs(data) do
-                            if active == false then
-                                local boonName = BoonData[boon].Name
-                                local color = BoonData[boon].Color
-                                rom.ImGui.PushStyleColor(rom.ImGuiCol.Text, color[1], color[2], color[3], color[4])
-                                rom.ImGui.BulletText(godName .. ' > ' .. boonName)
-                                rom.ImGui.PopStyleColor()
+                        local godColor = GodData[godName].Color
+                        rom.ImGui.TextColored(godColor[1], godColor[2], godColor[3], 1, godName)
+                        for i, boon in pairs(BoonData[godName]) do
+                            if boonList[godName][boon.Key] == false then
+                                local boonName = boon.Name
+                                rom.ImGui.BulletText(boonName)
+                                writeBoonRarity(BoonData[boon.Key])
                             end
                         end
                     end
+                    rom.ImGui.Unindent(indent)
                 end
-                rom.ImGui.Unindent(20)
                 rom.ImGui.PopStyleColor(3)
+
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.Header, 0, 0, 0.09, 1)
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderHovered, 0, 0, 0.18, 1)
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderActive, 0, 0, 0.33, 1)
+                if rom.ImGui.CollapsingHeader(allowCount .. " allowed###allow" .. tostring(name)) then
+                    rom.ImGui.Indent(indent)
+                    for _, godName in pairs(godNames) do
+                        local godColor = GodData[godName].Color
+                        rom.ImGui.TextColored(godColor[1], godColor[2], godColor[3], 1, godName)
+                        for i, boon in pairs(BoonData[godName]) do
+                            if boonList[godName][boon.Key] == true then
+                                local boonName = boon.Name
+                                rom.ImGui.BulletText(boonName)
+                                writeBoonRarity(BoonData[boon.Key])
+                            end
+                        end
+                    end
+                    rom.ImGui.Unindent(indent)
+                end
+
+                rom.ImGui.Unindent(indent)
+                rom.ImGui.PopStyleColor(3)
+
+                rom.ImGui.Spacing()
 
                 local load = rom.ImGui.Button("Load " .. name)
 
@@ -161,19 +170,35 @@ function drawMenu()
 
                 rom.ImGui.SameLine()
 
+                x, y = rom.ImGui.GetContentRegionAvail()
+                rom.ImGui.SetCursorPosX(rom.ImGui.GetCursorPosX() + x - 60)
                 rom.ImGui.PushStyleColor(rom.ImGuiCol.Button, 0.35, 0, 0, 1)
                 rom.ImGui.PushStyleColor(rom.ImGuiCol.ButtonHovered, 0.45, 0, 0, 1)
                 rom.ImGui.PushStyleColor(rom.ImGuiCol.ButtonActive, 0.65, 0, 0, 1)
-                local delete = rom.ImGui.Button("Delete")
+                local delete = rom.ImGui.Button("Delete", 60, 0)
                 rom.ImGui.PopStyleColor(3)
 
                 if delete then
                     deleteLoadout(name)
                 end
             end
+            rom.ImGui.Spacing()
         end
         if saveCount == 0 then
             rom.ImGui.Text("No saved profiles. Try creating one!")
         end
+    end
+end
+
+function writeBoonRarity(info)
+    if info.Duo ~= nil then
+        rom.ImGui.SameLine()
+        rom.ImGui.TextColored(0.82, 1, 0.38, 1, '(D)')
+    elseif info.Legendary ~= nil then
+        rom.ImGui.SameLine()
+        rom.ImGui.TextColored(1, 0.56, 0, 1, '(L)')
+    elseif info.Elemental ~= nil then
+        rom.ImGui.SameLine()
+        rom.ImGui.TextColored(1, 0.29, 1, 1, '(I)')
     end
 end

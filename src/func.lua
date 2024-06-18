@@ -5,6 +5,8 @@ function populateBoons()
     for upgradeName, upgradeData in pairs(game.LootData) do
         if upgradeData.GodLoot == true and upgradeData.PriorityUpgrades ~= nil and upgradeData.Traits ~= nil then
             local godName = game.GetDisplayName({ Text = upgradeName })
+            GodData[godName] = { Color = getColor(godName) }
+            BoonData[godName] = {}
             ActiveBoons[godName] = {}
             local boons = {}
             for i, v in pairs(upgradeData.PriorityUpgrades) do
@@ -12,6 +14,7 @@ function populateBoons()
                 table.insert(boons, boon)
                 ActiveBoons[godName][v] = true
                 BoonData[v] = boon
+                table.insert(BoonData[godName], boon)
             end
             for i, v in pairs(upgradeData.Traits) do
                 local boon = { Key = v, Color = getColor(godName) }
@@ -29,6 +32,7 @@ function populateBoons()
                 table.insert(boons, boon)
                 ActiveBoons[godName][v] = true
                 BoonData[v] = boon
+                table.insert(BoonData[godName], boon)
             end
 
             Gods[upgradeName] = { Name = godName, Boons = boons }
@@ -70,10 +74,14 @@ function saveLoadout(name, description)
 
     Save[tostring(name)] = save
     game.SaveCheckpoint({ DevSaveName = game.CreateDevSaveName(game.CurrentRun) })
+
+    SaveName = "Name"
+    SaveDesc = "My bans"
 end
 
 function loadLoadout(name)
     ActiveBoons = game.DeepCopyTable(Save[name].ActiveBoons)
+    game.CurrentRun.BannedTraits = {}
     for godName, vals in pairs(ActiveBoons) do
         for key, active in pairs(vals) do
             if active == false then
@@ -83,11 +91,41 @@ function loadLoadout(name)
     end
 
     game.SaveCheckpoint({ DevSaveName = game.CreateDevSaveName(game.CurrentRun) })
+
+    SaveName = name
+    SaveDesc = Save[name].Description
 end
 
 function deleteLoadout(name)
     Save[name] = nil
     game.SaveCheckpoint({ DevSaveName = game.CreateDevSaveName(game.CurrentRun) })
+end
+
+function getBanCounts(name, godNames)
+    local boonList = Save[name].ActiveBoons
+    local banCount = 0
+    local allowCount = 0
+    local seenDuoAllow = {}
+    local seenDuoBan = {}
+    for k, v in pairs(BoonData) do
+        if v.Duo then
+            seenDuoAllow[k] = false
+            seenDuoBan[k] = false
+        end
+    end
+    for _, godName in pairs(godNames) do
+        for boon, active in pairs(boonList[godName]) do
+            if active == true and (seenDuoAllow[boon] == nil or seenDuoAllow[boon] == false) then
+                allowCount = allowCount + 1
+                seenDuoAllow[boon] = true
+            end
+            if active == false and (seenDuoBan[boon] == nil or seenDuoBan[boon] == false) then
+                banCount = banCount + 1
+                seenDuoBan[boon] = true
+            end
+        end
+    end
+    return banCount, allowCount
 end
 
 -- this is just so it'll match with the colors i picked for dps meter

@@ -29,11 +29,12 @@ local function on_ready()
     if config.enabled == false then return end
 
     Gods = {}
+    GodData = {}
     ActiveBoons = {}
     BoonData = {}
     Save = {}
-    SaveName = "Profile"
-    SaveDesc = "A Short Description"
+    SaveName = "Name"
+    SaveDesc = "My bans"
 end
 
 local function on_reload()
