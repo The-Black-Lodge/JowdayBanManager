@@ -62,13 +62,18 @@ function resetAllBans()
     end
 end
 
-function saveLoadout(name)
-    Save[name] = game.DeepCopyTable(ActiveBoons)
+function saveLoadout(name, description)
+    local save = {
+        Description = description or "",
+        ActiveBoons = game.DeepCopyTable(ActiveBoons)
+    }
+
+    Save[tostring(name)] = save
     game.SaveCheckpoint({ DevSaveName = game.CreateDevSaveName(game.CurrentRun) })
 end
 
 function loadLoadout(name)
-    ActiveBoons = game.DeepCopyTable(Save[name])
+    ActiveBoons = game.DeepCopyTable(Save[name].ActiveBoons)
     for godName, vals in pairs(ActiveBoons) do
         for key, active in pairs(vals) do
             if active == false then

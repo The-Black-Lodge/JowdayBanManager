@@ -32,7 +32,8 @@ local function on_ready()
     ActiveBoons = {}
     BoonData = {}
     Save = {}
-    SelectedSave = 1
+    SaveName = "Profile"
+    SaveDesc = "A Short Description"
 end
 
 local function on_reload()

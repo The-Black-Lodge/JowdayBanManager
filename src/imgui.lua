@@ -91,25 +91,21 @@ function drawMenu()
     rom.ImGui.Separator()
     rom.ImGui.Text("Profiles")
 
-    value, pressed = rom.ImGui.RadioButton("Profile1##radio", SelectedSave, 1)
-    if pressed then
-        SelectedSave = value
-    end
-    value, pressed = rom.ImGui.RadioButton("Profile2##radio", SelectedSave, 2)
-    if pressed then
-        SelectedSave = value
-    end
-    value, pressed = rom.ImGui.RadioButton("Profile3##radio", SelectedSave, 3)
-    if pressed then
-        SelectedSave = value
-    end
+    local saveName, saveDesc = "", ""
+    text, selected = rom.ImGui.InputText("Name##saveName", SaveName, 15)
+    if selected then SaveName = text end
+    text, selected = rom.ImGui.InputTextMultiline("Description##saveDesc", SaveDesc, 255, 0, 75)
+    if selected then SaveDesc = text end
 
-    local save = rom.ImGui.Button("Save Profile" .. SelectedSave .. "##save")
+    local saveButtonText = "Save New"
+    if Save[SaveName] ~= nil then saveButtonText = "Update" end
+    saveButtonText = saveButtonText .. " Profile: " .. SaveName .. "##save"
+    local save = rom.ImGui.Button(saveButtonText)
 
 
     if save then
         -- until inputs work, hard-code the save name
-        saveLoadout('Profile' .. SelectedSave)
+        saveLoadout(SaveName, SaveDesc)
     end
 
     if Save ~= nil then
@@ -117,7 +113,7 @@ function drawMenu()
 
         local saveKeys = {}
         for key in pairs(Save) do
-            table.insert(saveKeys, key)
+            table.insert(saveKeys, tostring(key))
         end
         table.sort(saveKeys)
 
@@ -127,24 +123,35 @@ function drawMenu()
         local saveCount = 0
         for _, name in pairs(saveKeys) do
             saveCount = saveCount + 1
-            if rom.ImGui.CollapsingHeader(name) then
-                local boonList = Save[name]
+            if rom.ImGui.CollapsingHeader(tostring(name)) then
+                rom.ImGui.Indent(20)
+                rom.ImGui.TextWrapped(Save[name].Description)
+                local boonList = Save[name].ActiveBoons
                 local count = 0
-                rom.ImGui.Text("Ban List")
                 for _, godName in pairs(godNames) do
-                    local data = boonList[godName]
-                    for boon, active in pairs(data) do
-                        if active == false then
-                            local boonName = BoonData[boon].Name
-                            local color = BoonData[boon].Color
-                            rom.ImGui.PushStyleColor(rom.ImGuiCol.Text, color[1], color[2], color[3], color[4])
-                            rom.ImGui.BulletText(godName .. ' > ' .. boonName)
-                            rom.ImGui.PopStyleColor()
-                            count = count + 1
+                    for boon, active in pairs(boonList[godName]) do
+                        if active == false then count = count + 1 end
+                    end
+                end
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.Header, 0, 0.09, 0.09, 1)
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderHovered, 0, 0.18, 0.18, 1)
+                rom.ImGui.PushStyleColor(rom.ImGuiCol.HeaderActive, 0, 0.33, 0.33, 1)
+                if rom.ImGui.CollapsingHeader(count .. " ban(s)###ban" .. tostring(name)) then
+                    for _, godName in pairs(godNames) do
+                        local data = boonList[godName]
+                        for boon, active in pairs(data) do
+                            if active == false then
+                                local boonName = BoonData[boon].Name
+                                local color = BoonData[boon].Color
+                                rom.ImGui.PushStyleColor(rom.ImGuiCol.Text, color[1], color[2], color[3], color[4])
+                                rom.ImGui.BulletText(godName .. ' > ' .. boonName)
+                                rom.ImGui.PopStyleColor()
+                            end
                         end
                     end
                 end
-                rom.ImGui.Text(tostring(count) .. ' ban(s)')
+                rom.ImGui.Unindent(20)
+                rom.ImGui.PopStyleColor(3)
 
                 local load = rom.ImGui.Button("Load " .. name)
 
@@ -157,7 +164,7 @@ function drawMenu()
                 rom.ImGui.PushStyleColor(rom.ImGuiCol.Button, 0.35, 0, 0, 1)
                 rom.ImGui.PushStyleColor(rom.ImGuiCol.ButtonHovered, 0.45, 0, 0, 1)
                 rom.ImGui.PushStyleColor(rom.ImGuiCol.ButtonActive, 0.65, 0, 0, 1)
-                local delete = rom.ImGui.Button("Delete " .. name)
+                local delete = rom.ImGui.Button("Delete")
                 rom.ImGui.PopStyleColor(3)
 
                 if delete then
