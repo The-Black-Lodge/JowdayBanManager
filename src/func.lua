@@ -49,6 +49,7 @@ function populateBoons()
     local artemisBoons = {}
     ActiveBoons['Artemis'] = {}
     BoonData['Artemis'] = {}
+    GodData['Artemis'] = { Color = getColor('Artemis') }
     for _, boonKey in ipairs(game.UnitSetData.NPC_Artemis.NPC_Artemis_Field_01.Traits) do
         local boon = {
             Key = boonKey,
@@ -66,6 +67,7 @@ function populateBoons()
     local hadesBoons = {}
     ActiveBoons['Hades'] = {}
     BoonData['Hades'] = {}
+    GodData['Hades'] = { Color = getColor('Hades') }
     for _, boonKey in ipairs(game.UnitSetData.NPC_Hades.NPC_Hades_Field_01.Traits) do
         local boon = {
             Key = boonKey,
