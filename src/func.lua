@@ -2,8 +2,14 @@
 ---@diagnostic disable
 
 function populateBoons()
+    -- main gods + hermes
     for upgradeName, upgradeData in pairs(game.LootData) do
-        if upgradeData.GodLoot == true and upgradeData.PriorityUpgrades ~= nil and upgradeData.Traits ~= nil then
+        if
+            (upgradeData.GodLoot == true and
+                upgradeData.PriorityUpgrades ~= nil and
+                upgradeData.Traits ~= nil) or
+            upgradeName == 'HermesUpgrade'
+        then
             local godName = game.GetDisplayName({ Text = upgradeName })
             GodData[godName] = { Color = getColor(godName) }
             BoonData[godName] = {}
@@ -23,7 +29,7 @@ function populateBoons()
                     boon.Duo = true
                 elseif game.TraitData[v].IsElementalTrait then
                     boon.Elemental = true
-                elseif game.TraitData[v].RarityLevels.Legendary ~= nil then
+                elseif game.TraitData[v].RarityLevels ~= nil and game.TraitData[v].RarityLevels.Legendary ~= nil then
                     boon.Legendary = true
                 end
 
@@ -38,6 +44,40 @@ function populateBoons()
             Gods[upgradeName] = { Name = godName, Boons = boons }
         end
     end
+
+    -- artemis
+    local artemisBoons = {}
+    ActiveBoons['Artemis'] = {}
+    BoonData['Artemis'] = {}
+    for _, boonKey in ipairs(game.UnitSetData.NPC_Artemis.NPC_Artemis_Field_01.Traits) do
+        local boon = {
+            Key = boonKey,
+            Color = getColor('Artemis'),
+            Name = game.GetDisplayName({ Text = boonKey })
+        }
+        table.insert(artemisBoons, boon)
+        ActiveBoons['Artemis'][boonKey] = true
+        BoonData[boonKey] = boon
+        table.insert(BoonData['Artemis'], boon)
+    end
+    Gods['ArtemisUpgrade'] = { Name = 'Artemis', Boons = artemisBoons }
+    
+    -- hades
+    local hadesBoons = {}
+    ActiveBoons['Hades'] = {}
+    BoonData['Hades'] = {}
+    for _, boonKey in ipairs(game.UnitSetData.NPC_Hades.NPC_Hades_Field_01.Traits) do
+        local boon = {
+            Key = boonKey,
+            Color = getColor('Hades'),
+            Name = game.GetDisplayName({ Text = boonKey })
+        }
+        table.insert(hadesBoons, boon)
+        ActiveBoons['Hades'][boonKey] = true
+        BoonData[boonKey] = boon
+        table.insert(BoonData['Hades'], boon)
+    end
+    Gods['HadesUpgrade'] = {Name = 'Hades', Boons = hadesBoons}
 end
 
 function processBans()
@@ -148,6 +188,12 @@ function getColor(name)
         inGameColor = game.Color.PoseidonDamage
     elseif name == 'Zeus' then
         inGameColor = game.Color.ZeusDamageLight
+    elseif name == 'Hermes' then
+        inGameColor = game.Color.HermesVoice
+    elseif name == 'Artemis' then
+        inGameColor = game.Color.ArtemisDamage
+    elseif name == 'Hades' then
+        inGameColor = game.Color.HadesVoice
     end
     color[1] = inGameColor[1] / 255
     color[2] = inGameColor[2] / 255
