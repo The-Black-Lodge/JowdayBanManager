@@ -35,6 +35,10 @@ local function on_ready()
     Save = {}
     SaveName = "Name"
     SaveDesc = "My bans"
+
+    game.OnAnyLoad {function()
+        processBans()
+    end}
 end
 
 local function on_reload()
