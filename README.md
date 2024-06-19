@@ -4,12 +4,20 @@ Allows you to manage which boons will show up during your run! \
 
 ## Read first!
 Suggested steps for using BanManager:
-1. Before starting your run, create your ban list.
+1. Before starting your run, create your ban list by unchecking boons you don't want to see.
 2. Save your profile.
 3. Begin a new run.
 4. Load your profile.
 
-**Profiles are saved to your save slot and can be reused. However, profiles do NOT load automatically at the start of a run!**
+## About the checkboxes
+- Checkbox changes are applied immediately!
+- Creating a Profile is not necessary if you just want to experiment with the checkboxes.
+
+## A few notes on Profiles
+- Profiles do NOT load automatically!
+- Profiles are saved to your save slot.
+- Profiles can be reused.
+- Deleting a Profile does NOT wipe out your current bans.
 
 ---
 
