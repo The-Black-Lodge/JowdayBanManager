@@ -113,7 +113,7 @@ function drawMenu()
         for _, name in pairs(saveKeys) do
             local boonList = Save[name].ActiveBoons
             saveCount = saveCount + 1
-            local indent = 35
+            local indent = 38
             if rom.ImGui.CollapsingHeader(tostring(name)) then
                 rom.ImGui.TextWrapped(Save[name].Description)
                 rom.ImGui.Indent(indent)
