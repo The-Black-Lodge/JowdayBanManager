@@ -49,11 +49,12 @@ function populateBoons()
     local artemisBoons = {}
     ActiveBoons['Artemis'] = {}
     BoonData['Artemis'] = {}
-    GodData['Artemis'] = { Color = getColor('Artemis') }
+    local artemisColor = getColor('Artemis')
+    GodData['Artemis'] = { Color = artemisColor }
     for _, boonKey in ipairs(game.UnitSetData.NPC_Artemis.NPC_Artemis_Field_01.Traits) do
         local boon = {
             Key = boonKey,
-            Color = getColor('Artemis'),
+            Color = artemisColor,
             Name = game.GetDisplayName({ Text = boonKey })
         }
         table.insert(artemisBoons, boon)
@@ -67,11 +68,12 @@ function populateBoons()
     local hadesBoons = {}
     ActiveBoons['Hades'] = {}
     BoonData['Hades'] = {}
-    GodData['Hades'] = { Color = getColor('Hades') }
+    local hadesColor = getColor('Hades')
+    GodData['Hades'] = { Color = hadesColor }
     for _, boonKey in ipairs(game.UnitSetData.NPC_Hades.NPC_Hades_Field_01.Traits) do
         local boon = {
             Key = boonKey,
-            Color = getColor('Hades'),
+            Color = hadesColor,
             Name = game.GetDisplayName({ Text = boonKey })
         }
         table.insert(hadesBoons, boon)
@@ -79,7 +81,45 @@ function populateBoons()
         BoonData[boonKey] = boon
         table.insert(BoonData['Hades'], boon)
     end
-    Gods['HadesUpgrade'] = {Name = 'Hades', Boons = hadesBoons}
+    Gods['HadesUpgrade'] = { Name = 'Hades', Boons = hadesBoons }
+    
+    -- athena
+    local athenaBoons = {}
+    ActiveBoons['Athena'] = {}
+    BoonData['Athena'] = {}
+    local athenaColor = getColor('Athena')
+    GodData['Athena'] = { Color = athenaColor }
+    for _, boonKey in ipairs(game.UnitSetData.NPC_Athena.NPC_Athena_01.Traits) do
+        local boon = {
+            Key = boonKey,
+            Color = athenaColor,
+            Name = game.GetDisplayName({ Text = boonKey })
+        }
+        table.insert(athenaBoons, boon)
+        ActiveBoons['Athena'][boonKey] = true
+        BoonData[boonKey] = boon
+        table.insert(BoonData['Athena'], boon)
+    end
+    Gods['AthenaUpgrade'] = { Name = 'Athena', Boons = athenaBoons }
+
+    -- dionysus
+    local dionysusBoons = {}
+    ActiveBoons['Dionysus'] = {}
+    BoonData['Dionysus'] = {}
+    local dionysusColor = getColor('Dionysus')
+    GodData['Dionysus'] = { Color = dionysusColor }
+    for _, boonKey in ipairs(game.UnitSetData.NPC_Dionysus.NPC_Dionysus_01.Traits) do
+        local boon = {
+            Key = boonKey,
+            Color = dionysusColor,
+            Name = game.GetDisplayName({ Text = boonKey })
+        }
+        table.insert(dionysusBoons, boon)
+        ActiveBoons['Dionysus'][boonKey] = true
+        BoonData[boonKey] = boon
+        table.insert(BoonData['Dionysus'], boon)
+    end
+    Gods['DionysusUpgrade'] = { Name = 'Dionysus', Boons = dionysusBoons }
 end
 
 function processBans()
@@ -178,8 +218,12 @@ function getColor(name)
         inGameColor = game.Color.AphroditeDamage
     elseif name == 'Apollo' then
         inGameColor = game.Color.ApolloDamageLight
+    elseif name == 'Athena' then
+        inGameColor = game.Color.AthenaDamageLight
     elseif name == 'Demeter' then
         inGameColor = game.Color.DemeterDamage
+    elseif name == 'Dionysus' then
+        inGameColor = game.Color.DionysusDamage
     elseif name == 'Hera' then
         inGameColor = game.Color.HeraDamage
     elseif name == 'Hestia' then
