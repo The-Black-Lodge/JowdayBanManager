@@ -218,6 +218,8 @@ function getColor(name)
         inGameColor = game.Color.AphroditeDamage
     elseif name == 'Apollo' then
         inGameColor = game.Color.ApolloDamageLight
+    elseif name == 'Ares' then
+        inGameColor = game.Color.AresDamageLight
     elseif name == 'Athena' then
         inGameColor = game.Color.AthenaDamageLight
     elseif name == 'Demeter' then
