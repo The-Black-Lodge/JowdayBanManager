@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 [package]
 namespace = "Jowday"
 name = "BanManager"
-versionNumber = "0.1.0"
+versionNumber = "0.1.1"
 description = "Allows managing a list of boons that will never show up in your runs! Also allows you to undo Vow of Forsaking."
 websiteUrl = "https://github.com/The-Black-Lodge/JowdayBanManager"
 containsNsfwContent = false
