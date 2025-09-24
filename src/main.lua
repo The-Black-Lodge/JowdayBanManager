@@ -65,4 +65,7 @@ modutil.once_loaded.save(function()
     end
 
     Save = modutil.mod.Mod.Data[namespace]
+    
+    -- Validate all saved profiles for compatibility issues
+    validateAllSavedProfiles()
 end)

@@ -1,6 +1,121 @@
 ---@meta _
 ---@diagnostic disable
 
+function reconcileSavedData(savedActiveBoons)
+    local reconciledData = {}
+    local changes = {
+        missingBoons = {},
+        newBoons = {},
+        missingGods = {},
+        newGods = {}
+    }
+    
+    -- Process each god in the current ActiveBoons structure
+    for currentGodName, currentBoons in pairs(ActiveBoons) do
+        reconciledData[currentGodName] = {}
+        
+        -- Check if this god exists in saved data
+        local savedBoons = savedActiveBoons[currentGodName]
+        if not savedBoons then
+            -- New god not in saved data - default all boons to active (not banned)
+            for boonKey, _ in pairs(currentBoons) do
+                reconciledData[currentGodName][boonKey] = true
+                table.insert(changes.newGods, currentGodName)
+            end
+        else
+            -- God exists in saved data - reconcile boons
+            for boonKey, _ in pairs(currentBoons) do
+                if savedBoons[boonKey] ~= nil then
+                    -- Boon exists in both - use saved value
+                    reconciledData[currentGodName][boonKey] = savedBoons[boonKey]
+                else
+                    -- New boon not in saved data - default to active (not banned)
+                    reconciledData[currentGodName][boonKey] = true
+                    table.insert(changes.newBoons, boonKey)
+                end
+            end
+            
+            -- Check for boons that exist in saved data but not in current data
+            for savedBoonKey, _ in pairs(savedBoons) do
+                if currentBoons[savedBoonKey] == nil then
+                    -- Boon no longer exists - log it but don't include in reconciled data
+                    table.insert(changes.missingBoons, savedBoonKey)
+                end
+            end
+        end
+    end
+    
+    -- Check for gods that exist in saved data but not in current data
+    for savedGodName, _ in pairs(savedActiveBoons) do
+        if ActiveBoons[savedGodName] == nil then
+            table.insert(changes.missingGods, savedGodName)
+        end
+    end
+    
+    return reconciledData, changes
+end
+
+function logReconciliationChanges(changes, profileName)
+    if #changes.missingBoons > 0 or #changes.newBoons > 0 or #changes.missingGods > 0 or #changes.newGods > 0 then
+        print("BanManager: Reconciled profile '" .. profileName .. "'")
+        
+        if #changes.missingBoons > 0 then
+            print("  - Removed " .. #changes.missingBoons .. " boons that no longer exist:")
+            for _, boon in ipairs(changes.missingBoons) do
+                print("    * " .. boon)
+            end
+        end
+        
+        if #changes.newBoons > 0 then
+            print("  - Added " .. #changes.newBoons .. " new boons (defaulted to active):")
+            for _, boon in ipairs(changes.newBoons) do
+                print("    * " .. boon)
+            end
+        end
+        
+        if #changes.missingGods > 0 then
+            print("  - Removed " .. #changes.missingGods .. " gods that no longer exist:")
+            for _, god in ipairs(changes.missingGods) do
+                print("    * " .. god)
+            end
+        end
+        
+        if #changes.newGods > 0 then
+            print("  - Added " .. #changes.newGods .. " new gods (defaulted to active):")
+            for _, god in ipairs(changes.newGods) do
+                print("    * " .. god)
+            end
+        end
+    end
+end
+
+function validateAllSavedProfiles()
+    if Save == nil then return end
+    
+    local totalChanges = 0
+    local profilesWithChanges = {}
+    
+    for profileName, profileData in pairs(Save) do
+        if profileData.ActiveBoons then
+            local _, changes = reconcileSavedData(profileData.ActiveBoons)
+            local hasChanges = #changes.missingBoons > 0 or #changes.newBoons > 0 or #changes.missingGods > 0 or #changes.newGods > 0
+            
+            if hasChanges then
+                totalChanges = totalChanges + 1
+                table.insert(profilesWithChanges, profileName)
+            end
+        end
+    end
+    
+    if totalChanges > 0 then
+        print("BanManager: Found " .. totalChanges .. " saved profile(s) that need reconciliation:")
+        for _, profileName in ipairs(profilesWithChanges) do
+            print("  - " .. profileName)
+        end
+        print("BanManager: Profiles will be automatically reconciled when loaded.")
+    end
+end
+
 function populateBoons()
     -- main gods + hermes
     for upgradeName, upgradeData in pairs(game.LootData) do
@@ -162,7 +277,16 @@ function saveLoadout(name, description)
 end
 
 function loadLoadout(name)
-    ActiveBoons = game.DeepCopyTable(Save[name].ActiveBoons)
+    -- Reconcile saved data with current boon structure
+    local reconciledData, changes = reconcileSavedData(Save[name].ActiveBoons)
+    
+    -- Log any changes that were made during reconciliation
+    logReconciliationChanges(changes, name)
+    
+    -- Use reconciled data instead of raw saved data
+    ActiveBoons = reconciledData
+    
+    -- Apply bans to the game
     game.CurrentRun.BannedTraits = {}
     for godName, vals in pairs(ActiveBoons) do
         for key, active in pairs(vals) do
