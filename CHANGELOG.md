@@ -1,4 +1,6 @@
 # Changelog
+## Added
+- move some code around to prevent crashes with zanncdwbl's api
 
 ## [Unreleased]
 
