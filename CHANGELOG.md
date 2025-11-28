@@ -1,8 +1,8 @@
 # Changelog
-## Added
-- move some code around to prevent crashes with zanncdwbl's api
 
 ## [Unreleased]
+## Added
+- move some code around to prevent crashes with zanncdwbl's api
 
 ## [0.2.0] - 2025-09-26
 
