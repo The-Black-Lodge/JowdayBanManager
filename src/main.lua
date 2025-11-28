@@ -44,14 +44,18 @@ end
 local function on_reload()
     import 'func.lua'
     import 'imgui.lua'
-
-    populateBoons()
 end
 
 local loader = reload.auto_single()
 
 modutil.once_loaded.game(function()
     loader.load(on_ready, on_reload)
+end)
+
+mods.on_all_mods_loaded(function()
+	modutil.once_loaded.game(function()
+		populateBoons()
+	end)
 end)
 
 modutil.once_loaded.save(function()
